@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from '@aws-cdk/core';
+import 'source-map-support/register'
+import * as cdk from 'aws-cdk-lib'
 import dotenv from 'dotenv'
-import { AwsAccountFactoryStack } from '../lib/aws-account-factory-stack';
+import { AwsAccountFactoryStack } from '../lib/awsAccountFactoryStack'
 
 dotenv.config()
 

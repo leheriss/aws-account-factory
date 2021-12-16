@@ -1,8 +1,11 @@
-import * as cdk from "@aws-cdk/core"
-import * as budgets from '@aws-cdk/aws-budgets'
-import * as cloudtrail from '@aws-cdk/aws-cloudtrail'
-import * as s3 from '@aws-cdk/aws-s3'
-import * as iam from "@aws-cdk/aws-iam"
+import { Construct } from 'constructs'
+import * as cdk from 'aws-cdk-lib'
+import { 
+	aws_s3 as s3, 
+	aws_cloudtrail as cloudtrail,
+	aws_budgets as budgets,
+	aws_iam as iam
+} from 'aws-cdk-lib'
 
 interface ManagementAccountProps {
 	budgetName: string
@@ -10,8 +13,8 @@ interface ManagementAccountProps {
 	organizationId: string
 }
 
-export class ManagementAccount extends cdk.Construct {
-	constructor (scope: cdk.Construct, id: string, props: ManagementAccountProps) {
+export class ManagementAccount extends Construct {
+	constructor (scope: Construct, id: string, props: ManagementAccountProps) {
 		super(scope, id)
 
 		const region = cdk.Stack.of(this).region
