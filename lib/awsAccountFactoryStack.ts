@@ -2,10 +2,12 @@ import * as cdk from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 import { ManagementAccount } from './constructs/managementAccount'
 import { AccountFactory } from './constructs/accountFactory'
+import { OrganizationUnits } from './constructs/organizationUnits'
 
 type AwsAccountFactoryStackProps = {
   organizationId: string
   email: string
+  rootOu: string
 } & cdk.StackProps
 
 export class AwsAccountFactoryStack extends cdk.Stack {
@@ -20,5 +22,8 @@ export class AwsAccountFactoryStack extends cdk.Stack {
     })
 
     const accountFactory = new AccountFactory(scope, 'AccountFactory', {})
+    const organizationUnits = new OrganizationUnits(this, 'OrganizationUnits', {
+      rootOrganizationId: props.rootOu
+    })
   }
 }

@@ -14,8 +14,12 @@ if (!process.env.ORGANIZATION_ID) {
 if (!process.env.EMAIL) {
   throw new Error('No EMAIL provided in environment variables.')
 }
+if (!process.env.ROOT_OU) {
+  throw new Error('No ROOT_OU provided in environment variables.')
+}
 
 new AwsAccountFactoryStack(app, 'AwsAccountFactoryStack', {
   organizationId: process.env.ORGANIZATION_ID,
+  rootOu: process.env.ROOT_OU,
   email: process.env.EMAIL
 })
