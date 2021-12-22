@@ -6,17 +6,15 @@ interface OrganizationUnitsProps {
 }
 
 export class OrganizationUnits extends Construct {
-	public readonly sandboxOuId: string
+	public readonly sandboxOu: OrganizationalUnit
 
 	constructor(scope: Construct, id: string, props: OrganizationUnitsProps){
 		super(scope, id)
 
-		const sandboxOu = new OrganizationalUnit(scope, 'Sandbox', {
+		this.sandboxOu = new OrganizationalUnit(scope, 'Sandbox', {
 			organizationParentId: props.rootOrganizationId,
 			organizationalUnitName: 'Sandbox'
 		})
-
-		this.sandboxOuId = sandboxOu.ouId
 
 		new OrganizationalUnit(scope, 'PendingDeletionAccounts', {
 			organizationParentId: props.rootOrganizationId,

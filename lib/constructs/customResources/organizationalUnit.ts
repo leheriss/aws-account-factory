@@ -17,7 +17,7 @@ export class OrganizationalUnit extends Construct {
 
 		this.region = 'us-east-1'
 
-		new custom_resources.AwsCustomResource(scope, `${props.organizationalUnitName}OU`, {
+		const ouCustomResource = new custom_resources.AwsCustomResource(scope, `${props.organizationalUnitName}OU`, {
 			policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({
 				resources: custom_resources.AwsCustomResourcePolicy.ANY_RESOURCE
 			}),
@@ -51,6 +51,6 @@ export class OrganizationalUnit extends Construct {
 			}
 		})
 
-		this.ouId = new custom_resources.PhysicalResourceIdReference().toString()
+		this.ouId = ouCustomResource.getResponseField('OrganizationalUnit.Id')
 	}
 }
