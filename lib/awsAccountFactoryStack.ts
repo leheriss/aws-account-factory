@@ -3,6 +3,7 @@ import { Construct } from 'constructs'
 import { ManagementAccount } from './constructs/managementAccount'
 import { AccountFactory } from './constructs/accountFactory'
 import { OrganizationUnits } from './constructs/organizationUnits'
+import { InitAccount } from './constructs/initAccount'
 
 type AwsAccountFactoryStackProps = {
   organizationId: string
@@ -30,5 +31,10 @@ export class AwsAccountFactoryStack extends cdk.Stack {
       email: props.email
     })
     accountFactory.node.addDependency(organizationUnits)
+
+    const initAccount = new InitAccount(this, 'InitAccount', {
+      sandboxOuId: organizationUnits.sandboxOu.ouId,
+    })
+    initAccount.node.addDependency(organizationUnits)
   }
 }
