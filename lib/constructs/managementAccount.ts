@@ -21,6 +21,8 @@ export class ManagementAccount extends Construct {
 		const accountId = cdk.Stack.of(this).account
 		const trailName = 'OrganizationTrail'
 
+		// Budget
+
 		new budgets.CfnBudget(this, 'CfnBudget', {
 			budget: {
 				budgetType: 'COST',
@@ -87,7 +89,9 @@ export class ManagementAccount extends Construct {
 				}]
 			}],
 		})
-		
+
+		// Organization Trail
+
 		const trailBucket: s3.Bucket = new s3.Bucket(this, 'OrganizationTrailBucket', {})
 
 		trailBucket.addToResourcePolicy(
@@ -137,6 +141,14 @@ export class ManagementAccount extends Construct {
 			trailName: trailName
 		}	)
 
+		// IAM user group for common policies
+
+		new iam.Group(this, 'StandardUserGroup', {
+			groupName: 'StandardUserGroup',
+			managedPolicies: [ 
+				iam.ManagedPolicy.fromAwsManagedPolicyName('IAMUserChangePassword') 
+			]
+		})
 	}
 }
 
