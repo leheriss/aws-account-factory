@@ -4,7 +4,13 @@ import {
 	aws_lambda_nodejs as lambdajs,
 	aws_lambda as lambda,
 	aws_iam as iam,
+	aws_stepfunctions as sf,
+	aws_stepfunctions_tasks as tasks,
+	aws_cloudwatch as cw,
+	Duration,
+	Stack
 } from 'aws-cdk-lib'
+import { buildFunctionAlarm } from '../utils'
 
 interface AccountFactoryProps {
 	sandboxOU: string
@@ -45,5 +51,49 @@ export class AccountFactory extends Construct {
 			effect: iam.Effect.ALLOW,
 			resources: ['*']
 		}))
+
+		const createUserFunction = new lambdajs.NodejsFunction(this, 'createUserFunction', {
+			entry: './lambdas/createUser.ts',
+			handler: 'handler',
+			functionName: 'createUser',
+			runtime: lambda.Runtime.NODEJS_14_X,
+			timeout: cdk.Duration.seconds(900),
+			architecture: lambda.Architecture.ARM_64,
+			memorySize: 1024,
+			environment: {
+				REGION: region
+			}
+		})
+
+		createUserFunction.addToRolePolicy(new iam.PolicyStatement({
+			actions: ['iam:CreateUser', 'iam:CreateLoginProfile', 'iam:AttachUserPolicy', 'iam:PutUserPolicy', 'iam:AddUserToGroup'],
+			effect: iam.Effect.ALLOW,
+			resources: ['*']
+		}))
+
+		//alarms for lambdas
+
+		buildFunctionAlarm(this, 'CreateAccountAlarm', createAccountFunction)
+		buildFunctionAlarm(this, 'CreateUserAlarm', createUserFunction)
+
+		// Step function
+
+		const createAccountJob = new tasks.LambdaInvoke(this, 'createAccountJob', {
+			lambdaFunction: createAccountFunction,
+			payload: sf.TaskInput.fromObject({ email: sf.JsonPath.stringAt('$.email')}),
+			outputPath: '$.Payload'
+		})
+
+		const createUserJob = new tasks.LambdaInvoke(this, 'createUserJob', {
+			lambdaFunction: createUserFunction,
+			payload: sf.TaskInput.fromObject({ email: sf.JsonPath.stringAt('$.email'), accountId: sf.JsonPath.stringAt('$.accountId') }),
+			resultPath: '$'
+		})
+
+		new sf.StateMachine(this, 'CreateAccountStateMachine', {
+			definition: createAccountJob.next(createUserJob),
+			timeout: Duration.seconds(5000),
+			stateMachineName: 'CreateAccountStateMachine'
+		})
 	}
 }
