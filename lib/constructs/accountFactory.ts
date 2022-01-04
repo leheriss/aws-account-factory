@@ -16,6 +16,8 @@ interface AccountFactoryProps {
 	sandboxOU: string
 	rootOU: string
 	email: string
+	jumpAccountId: string
+	mgmtAccountId: string
 }
 
 export class AccountFactory extends Construct {
@@ -23,6 +25,7 @@ export class AccountFactory extends Construct {
 		super(scope, id)
 
 		const region = Stack.of(this).region
+		const accountId = Stack.of(this).account
 
 		const createAccountFunction = new lambdajs.NodejsFunction(this, 'createAccountFunction', {
 			entry: './lambdas/createAccount.ts',
@@ -61,7 +64,9 @@ export class AccountFactory extends Construct {
 			architecture: lambda.Architecture.ARM_64,
 			memorySize: 1024,
 			environment: {
-				REGION: region
+				REGION: region,
+				JUMP_ACCOUNT_ID: props.jumpAccountId,
+				MGMT_ACCOUNT_ID: props.mgmtAccountId
 			}
 		})
 
@@ -70,6 +75,15 @@ export class AccountFactory extends Construct {
 			effect: iam.Effect.ALLOW,
 			resources: ['*']
 		}))
+
+
+		if (props.jumpAccountId !== props.mgmtAccountId) {
+			createUserFunction.addToRolePolicy(new iam.PolicyStatement({
+				actions: ['sts:AssumeRole'],
+				effect: iam.Effect.ALLOW,
+				resources: [`arn:aws:iam::${props.jumpAccountId}:role/role-jump`]
+			})) 
+		}
 
 		//alarms for lambdas
 

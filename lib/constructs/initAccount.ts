@@ -6,13 +6,13 @@ import {
 
 interface InitAccountProps {
 	sandboxOuId: string
+	jumpAccountId: string
 }
 
 export class InitAccount extends Construct {
 	constructor(scope: Construct, id: string, props: InitAccountProps) {
 		super(scope, id)
 
-		const accountId = Stack.of(this).account
 		const region = Stack.of(this).region
 
 		const initAccountTemplate = {
@@ -29,7 +29,7 @@ export class InitAccount extends Construct {
 											Effect: 'Allow',
 											Principal: {
 													AWS: [
-														accountId
+														props.jumpAccountId
 													]
 											},
 											Action: [
@@ -54,7 +54,7 @@ export class InitAccount extends Construct {
 											Effect: 'Allow',
 											Principal: {
 													AWS: [
-														accountId
+														props.jumpAccountId
 													]
 											},
 											Action: [

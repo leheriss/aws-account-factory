@@ -140,15 +140,6 @@ export class ManagementAccount extends Construct {
 			isOrganizationTrail: true,
 			trailName: trailName
 		}	)
-
-		// IAM user group for common policies
-
-		new iam.Group(this, 'StandardUserGroup', {
-			groupName: 'StandardUserGroup',
-			managedPolicies: [ 
-				iam.ManagedPolicy.fromAwsManagedPolicyName('IAMUserChangePassword') 
-			]
-		})
 	}
 }
 

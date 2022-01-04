@@ -9,6 +9,8 @@ type AwsAccountFactoryStackProps = {
   organizationId: string
   email: string
   rootOu: string
+  jumpAccountId: string, 
+  mgmtAccountId: string
 } & cdk.StackProps
 
 export class AwsAccountFactoryStack extends cdk.Stack {
@@ -28,12 +30,15 @@ export class AwsAccountFactoryStack extends cdk.Stack {
     const accountFactory = new AccountFactory(this, 'AccountFactory', {
       rootOU: props.rootOu,
       sandboxOU: organizationUnits.sandboxOu.ouId, 
-      email: props.email
+      email: props.email, 
+      jumpAccountId: props.jumpAccountId, 
+      mgmtAccountId: props.mgmtAccountId
     })
     accountFactory.node.addDependency(organizationUnits)
 
     const initAccount = new InitAccount(this, 'InitAccount', {
       sandboxOuId: organizationUnits.sandboxOu.ouId,
+      jumpAccountId: props.jumpAccountId
     })
     initAccount.node.addDependency(organizationUnits)
   }
