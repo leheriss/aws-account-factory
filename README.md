@@ -17,6 +17,11 @@ It is deploying resources in only one Stack and uses Constructs to split resourc
    - ORGANIZATION_ID : The id of your AWS Organization
    - ROOT_OU: The id of your Root Organization
    - EMAIL: The administrator of your AWS organization. This email is used for billing and for alternate contacts on the created AWS accounts.
+   - JUMP_ACCOUNT_ID: The id of the account where all customer users will be created. It can be the managament account or another dedicated one.
+   - MGMT_ACCOUNT: The id of the management account
+
+> Note: if you decide that your jump account is different from the management account, you need also to deploy a `role-jump` IAM role in the chosen jump account. This enables the management account to create users cross-account in the jump account as it must assume a role to do so.  
+You shall also create a `StandardUserGroup` IAM group in the jump account with common policies like IAMChangePassword.
 
 ##  🚀 Deployment using cdk
 
@@ -63,12 +68,6 @@ This resources allows to log everything actions from all the AWS account of your
 
 You can find this in the [managementAccount construct](lib/constructs/managementAccount.ts).
 
-### IAM User group
-
-To group all common permissions for the created IAM users, they are automatically put into this User group. 
-
-You can find this in the [managementAccount construct](lib/constructs/managementAccount.ts).
-
 ### AWS Lambda functions
 
 As of January 2022, there are 2 lambdas deployed in the Management Account.
@@ -76,9 +75,16 @@ As of January 2022, there are 2 lambdas deployed in the Management Account.
 - createAccount: Which creates the AWS account and wait for its creation before adding it to the Sandbox OU and adding alternate contact
 - createUser: which creates a new user for the new created account into the management account
 
+> Note: The createUser function also adds the newly created user into the StandardUser IAM group of the jump account. This group needs to be created manually in the jump account ( which can be the management account or a dedicated account).
+
 You can find this in the [lambda folder](lambdas). And their CDK declaration in the [accountFactory construct](lib/constructs/accountFactory.ts)
 
 Those 2 functions are to be called by an **AWS Step Function** each time an account needs to be created.
+
+### IAM User group
+
+To group all common permissions for the created IAM users, they are automatically put into this User group.  
+> **This needs to be created manually.**
 
 ### AWS Step Function
 
