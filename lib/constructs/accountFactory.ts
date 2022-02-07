@@ -25,7 +25,6 @@ export class AccountFactory extends Construct {
 		super(scope, id)
 
 		const region = Stack.of(this).region
-		const accountId = Stack.of(this).account
 
 		const createAccountFunction = new lambdajs.NodejsFunction(this, 'createAccountFunction', {
 			entry: './lambdas/createAccount.ts',
@@ -38,13 +37,16 @@ export class AccountFactory extends Construct {
 			environment: {
 				DESTINATION_OU: props.sandboxOU,
 				ROOT_OU: props.rootOU,
-				EMAIL: props.email,
-				REGION: region
+				EMAIL: props.email
 			}
 		})
 
 		createAccountFunction.addToRolePolicy(new iam.PolicyStatement({
-			actions: ['organizations:CreateAccount', 'organizations:MoveAccount', 'organizations:DescribeCreateAccountStatus'],
+			actions: [
+				'organizations:CreateAccount', 
+				'organizations:MoveAccount', 
+				'organizations:DescribeCreateAccountStatus'
+			],
 			effect: iam.Effect.ALLOW,
 			resources: ['*']
 		}))

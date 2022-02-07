@@ -1,5 +1,4 @@
 import { Construct } from 'constructs'
-import * as cdk from 'aws-cdk-lib'
 import { custom_resources } from 'aws-cdk-lib'
 
 interface OrganizationalUnitProps {
@@ -9,13 +8,15 @@ interface OrganizationalUnitProps {
 
 export class OrganizationalUnit extends Construct {
 
-	public readonly ouId: string
+	public readonly id: string
 	private readonly region: string
+	public readonly name: string
 
 	constructor(scope: Construct, id: string, props: OrganizationalUnitProps){
 		super(scope, id)
 
 		this.region = 'us-east-1'
+		this.name = props.organizationalUnitName
 
 		const ouCustomResource = new custom_resources.AwsCustomResource(scope, `${props.organizationalUnitName}OU`, {
 			policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({
@@ -51,6 +52,6 @@ export class OrganizationalUnit extends Construct {
 			}
 		})
 
-		this.ouId = ouCustomResource.getResponseField('OrganizationalUnit.Id')
+		this.id = ouCustomResource.getResponseField('OrganizationalUnit.Id')
 	}
 }

@@ -20,13 +20,12 @@ const createAccount = async (organizationsClient: OrganizationsClient, email: st
 		Email: email
 	})
 	const response = await organizationsClient.send(command)
-	console.log(response)
 
-	if(!response.CreateAccountStatus?.Id) {
+	if(!response.CreateAccountStatus || !response.CreateAccountStatus?.Id) {
 		throw new Error(`Error while creating account for ${email}`)
 	}
 
-	return response.CreateAccountStatus?.Id
+	return response.CreateAccountStatus.Id
 }
 
 const waitForAccountCreation = async (organizationsClient: OrganizationsClient, createAccountRequestId: string) : Promise<string> => { 
@@ -36,13 +35,21 @@ const waitForAccountCreation = async (organizationsClient: OrganizationsClient, 
 				CreateAccountRequestId: createAccountRequestId
 			})
 			const result = await organizationsClient.send(command)
-			const state = result.CreateAccountStatus?.State
+			if (!result.CreateAccountStatus){
+				return reject(`No CreateAccountStatus for ${createAccountRequestId}`)
+			}
+			const createAccountStatus = result.CreateAccountStatus
 
-			switch (state) {
+			const {
+				State,
+				AccountId
+			} = createAccountStatus 
+
+			switch (State) {
 				case CreateAccountState.SUCCEEDED:
-					result.CreateAccountStatus?.AccountId 
-					? resolve(result.CreateAccountStatus?.AccountId) 
-					: reject('Unable to create Account, AccountId undefined')
+					AccountId 
+						? resolve(AccountId) 
+						: reject('Unable to create Account, AccountId undefined')
 					break
 				
 				case CreateAccountState.IN_PROGRESS:
@@ -99,18 +106,15 @@ export const handler = async (event: createAccountEvent) => {
 	if (!process.env.EMAIL) {
 		throw ('Missing EMAIL in environment variables')
 	}
-	if (!process.env.REGION) {
-		throw ('Missing REGION in environment variables')
-	}	
 
-	const organizationsClient = new OrganizationsClient({region: process.env.REGION})
+	const organizationsClient = new OrganizationsClient({})
 
 	const createAccountRequestId = await createAccount(organizationsClient, event.email)
 	const accountId = await waitForAccountCreation(organizationsClient, createAccountRequestId)
 
 	await moveAccount(organizationsClient, accountId, process.env.DESTINATION_OU, process.env.ROOT_OU)
 
-	const accountClient = new AccountClient({ region: process.env.REGION })
+	const accountClient = new AccountClient({})
 	await addAlternateContact(accountClient, accountId, process.env.EMAIL, 'OPERATIONS', '0000000000')
 	await addAlternateContact(accountClient, accountId, process.env.EMAIL, 'SECURITY', '0000000000')
 	await addAlternateContact(accountClient, accountId, process.env.EMAIL, 'BILLING', '0000000000')

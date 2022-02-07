@@ -29,7 +29,7 @@ export class AwsAccountFactoryStack extends cdk.Stack {
 
     const accountFactory = new AccountFactory(this, 'AccountFactory', {
       rootOU: props.rootOu,
-      sandboxOU: organizationUnits.sandboxOu.ouId, 
+      sandboxOU: organizationUnits.sandboxOu.id, 
       email: props.email, 
       jumpAccountId: props.jumpAccountId, 
       mgmtAccountId: props.mgmtAccountId
@@ -37,7 +37,7 @@ export class AwsAccountFactoryStack extends cdk.Stack {
     accountFactory.node.addDependency(organizationUnits)
 
     const initAccount = new InitAccount(this, 'InitAccount', {
-      sandboxOuId: organizationUnits.sandboxOu.ouId,
+      sandboxOuId: organizationUnits.sandboxOu.id,
       jumpAccountId: props.jumpAccountId
     })
     initAccount.node.addDependency(organizationUnits)

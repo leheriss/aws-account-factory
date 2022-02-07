@@ -1,5 +1,15 @@
-import { IAMClient, CreateUserCommand, CreateLoginProfileCommand, PutUserPolicyCommand, AddUserToGroupCommand } from "@aws-sdk/client-iam"
-import { STSClient, AssumeRoleCommand, Credentials } from "@aws-sdk/client-sts"
+import { 
+	IAMClient, 
+	CreateUserCommand, 
+	CreateLoginProfileCommand, 
+	PutUserPolicyCommand, 
+	AddUserToGroupCommand 
+} from "@aws-sdk/client-iam"
+import { 
+	STSClient, 
+	AssumeRoleCommand, 
+	Credentials 
+} from "@aws-sdk/client-sts"
 import { generate } from "generate-password"
 
 type CreateUserEvent = {
@@ -45,32 +55,28 @@ const createUserWithTemporaryPassword = async (iamClient: IAMClient, email: stri
 	}))
 }
 
-const assumeRoleCredentials = async (role: string, region: string) : Promise<Credentials> => {
-	const stsClient = new STSClient({ region: process.env.REGION })
+const assumeRoleCredentials = async (role: string) : Promise<Credentials> => {
+	const stsClient = new STSClient({})
 		const response = await stsClient.send(new AssumeRoleCommand({
 			RoleArn: role,
 			RoleSessionName: 'JumpAccountSession'
 		}))
 
 		if (!response.Credentials) {
-			throw ('Could not retrieve credentials from assume role command')
+			throw new Error('Could not retrieve credentials from assume role command')
 		}
 		return response.Credentials
 }
 
 export const handler = async (event: CreateUserEvent) => {
 	console.log(event)
-	if (!process.env.REGION) {
-		throw ('Missing REGION in environment variables')
-	}	
 	if (!process.env.JUMP_ACCOUNT_ID) {
-		throw ('Missing JUMP_ACCOUNT_ID in environment variables')
+		throw new Error('Missing JUMP_ACCOUNT_ID in environment variables')
 	}
 	if (!process.env.MGMT_ACCOUNT_ID) {
-		throw ('Missing MGMT_ACCOUNT_ID in environment variables')
+		throw new Error('Missing MGMT_ACCOUNT_ID in environment variables')
 	}
 	
-	const region = process.env.REGION
 	const jumpAccountId = process.env.JUMP_ACCOUNT_ID
 	const mgmtAccountId = process.env.MGMT_ACCOUNT_ID
 
@@ -78,7 +84,7 @@ export const handler = async (event: CreateUserEvent) => {
 	// we need to assume a role in it before creating the user
 	if (jumpAccountId !== mgmtAccountId) {
 		const jumpAccountRole = `arn:aws:iam::${jumpAccountId}:role/role-jump`
-		const credentials = await assumeRoleCredentials(jumpAccountRole, region)
+		const credentials = await assumeRoleCredentials(jumpAccountRole)
 		if (!credentials.AccessKeyId) {
 			throw ('Could not retrieve AccessKeyId from credentials')
 		}
