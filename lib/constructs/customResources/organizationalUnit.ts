@@ -1,9 +1,14 @@
 import { Construct } from 'constructs'
-import { custom_resources } from 'aws-cdk-lib'
+import { Annotations, custom_resources } from 'aws-cdk-lib'
 
 interface OrganizationalUnitProps {
 	organizationalUnitName: string
 	organizationParentId: string
+}
+
+
+const checkOrganizationalUnitName = (name: string): boolean => {
+    return /[\s\S]{1,128}/.test(name);
 }
 
 export class OrganizationalUnit extends Construct {
@@ -17,6 +22,12 @@ export class OrganizationalUnit extends Construct {
 
 		this.region = 'us-east-1'
 		this.name = props.organizationalUnitName
+
+		if (!checkOrganizationalUnitName(this.name)) {
+			Annotations.of(this).addError(
+				"The organizational unit's name must be of type string and between 1 and 128 characters long"
+			)
+		}
 
 		const ouCustomResource = new custom_resources.AwsCustomResource(scope, `${props.organizationalUnitName}OU`, {
 			policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({

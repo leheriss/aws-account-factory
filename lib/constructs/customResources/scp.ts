@@ -1,10 +1,14 @@
 import { Construct } from "constructs"
-import { custom_resources } from 'aws-cdk-lib'
+import { Annotations, custom_resources } from 'aws-cdk-lib'
 
 type ScpProps = {
 	scpName: string
 	content: string
 	description: string
+}
+
+export const checkPolicyContent = (content: string): boolean => {
+    return /[\s\S]{1,1000000}/.test(content);
 }
 
 export default class Scp extends Construct {
@@ -23,6 +27,13 @@ export default class Scp extends Construct {
 			content,
 			description
 		} = props
+
+		if (!checkPolicyContent(content)) {
+			Annotations.of(this).addError(
+			  "The text content of the policy must be valid and between 1 and 1,000,000 characters long"
+			)
+		}
+
 		const scpCustomResource = new custom_resources.AwsCustomResource(scope, `${scpName}`, {
 			policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({
 				resources: custom_resources.AwsCustomResourcePolicy.ANY_RESOURCE
