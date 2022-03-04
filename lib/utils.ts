@@ -19,3 +19,4 @@ export const buildFunctionAlarm = (scope: Construct, id: string, fn: lambda.IFun
 
 	new cw.Alarm(scope, id, alarmProps)
 }
+
